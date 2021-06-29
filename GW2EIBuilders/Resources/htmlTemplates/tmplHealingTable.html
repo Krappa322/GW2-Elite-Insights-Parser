@@ -1,0 +1,205 @@
+﻿<template>
+    <div>
+        <table class="table table-sm table-striped table-hover" cellspacing="0" width="100%" id="heal-table">
+            <thead>
+                <tr>
+                    <th class="sub-cell">Sub</th>
+                    <th class="prof-cell"></th>
+                    <th class="text-left">Name</th>
+                    <th>Account</th>
+                    <th v-show="!targetless" data-original-title="Squad" class="damage-cell">
+                        Squad <img src="https://wiki.guildwars2.com/images/8/81/Healing_Power.png" alt="" class="icon">
+                    </th>
+                    <th v-show="!targetless" data-original-title="Group" class="damage-cell">
+                        Group <img src="https://wiki.guildwars2.com/images/8/81/Healing_Power.png" alt="" class="icon">
+                    </th>
+                    <th v-show="!targetless" data-original-title="Self" class="damage-cell">
+                        Self <img src="https://wiki.guildwars2.com/images/8/81/Healing_Power.png" alt="" class="icon">
+                    </th>
+                    <th v-show="!targetless" data-original-title="All (Excluding Minions)" class="damage-cell">
+                        All (Excluding Minions) <img src="https://wiki.guildwars2.com/images/8/81/Healing_Power.png" alt="" class="icon">
+                    </th>
+                    <th v-show="!targetless" data-original-title="All (Including Minions)" class="damage-cell">
+                        All (Including Minions) <img src="https://wiki.guildwars2.com/images/8/81/Healing_Power.png" alt="" class="icon">
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="row in tableData.rows" :class="{active: row.player.id === playerindex}">
+                    <td>{{row.player.group}}</td>
+                    <td :data-original-title="row.player.profession">
+                        <img :src="row.player.icon" :alt="row.player.profession" class="icon"><span style="display:none">{{row.player.profession}}</span>
+                    </td>
+                    <td class="text-left">{{row.player.name}}</td>
+                    <td>{{row.player.acc}}</td>
+                    <td v-show="!targetless" v-if="!showDamage"
+                        :data-original-title="row.healing[0] + ' healing'+ '<br>' + computeTotalContribution(0, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 0, row.healing,tableData.sums)">
+                        {{round(row.healing[0]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else
+                        :data-original-title="round(row.healing[0]/phase.durationS) + ' hps'+ '<br>' + computeTotalContribution(0, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 0, row.healing,tableData.sums)">
+                        {{row.healing[0]}}
+                    </td>
+                    <td v-show="!targetless" v-if="!showDamage"
+                        :data-original-title="row.healing[1] + ' healing'+ '<br>' + computeTotalContribution(1, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 1, row.healing,tableData.sums)">
+                        {{round(row.healing[1]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else
+                        :data-original-title="round(row.healing[1]/phase.durationS) + ' hps'+ '<br>' + computeTotalContribution(1, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 1, row.healing,tableData.sums)">
+                        {{row.healing[1]}}
+                    </td>
+                    <td v-show="!targetless" v-if="!showDamage"
+                        :data-original-title="row.healing[2] + ' healing'+ '<br>' + computeTotalContribution(2, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 2, row.healing,tableData.sums)">
+                        {{round(row.healing[2]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else
+                        :data-original-title="round(row.healing[2]/phase.durationS) + ' hps'+ '<br>' + computeTotalContribution(2, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 2, row.healing,tableData.sums)">
+                        {{row.healing[2]}}
+                    </td>
+                    <td v-show="!targetless" v-if="!showDamage"
+                        :data-original-title="row.healing[3] + ' healing'+ '<br>' + computeTotalContribution(3, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 3, row.healing,tableData.sums)">
+                        {{round(row.healing[3]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else
+                        :data-original-title="round(row.healing[3]/phase.durationS) + ' hps'+ '<br>' + computeTotalContribution(3, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 3, row.healing,tableData.sums)">
+                        {{row.healing[3]}}
+                    </td>
+                    <td v-show="!targetless" v-if="!showDamage"
+                        :data-original-title="row.healing[4] + ' healing'+ '<br>' + computeTotalContribution(4, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 4, row.healing,tableData.sums)">
+                        {{round(row.healing[4]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else
+                        :data-original-title="round(row.healing[4]/phase.durationS) + ' hps'+ '<br>' + computeTotalContribution(4, row.healing,tableData.sums)+ '<br>'+ computeGroupContribution(row.player.group, 4, row.healing,tableData.sums)">
+                        {{row.healing[4]}}
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr v-for="sum in tableData.sums">
+                    <td></td>
+                    <td></td>
+                    <td class="text-left">{{sum.name}}</td>
+                    <td></td>
+                    <td v-show="!targetless" v-if="!showDamage" :data-original-title="sum.healing[0] + ' healing'">
+                        {{round(sum.healing[0]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else :data-original-title="round(sum.healing[0]/phase.durationS) + ' hps'">
+                        {{sum.healing[0]}}
+                    </td>
+                    <td v-show="!targetless" v-if="!showDamage" :data-original-title="sum.healing[1] + ' healing'">
+                        {{round(sum.healing[1]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else :data-original-title="round(sum.healing[1]/phase.durationS) + ' hps'">
+                        {{sum.healing[1]}}
+                    </td>
+                    <td v-show="!targetless" v-if="!showDamage" :data-original-title="sum.healing[2] + ' healing'">
+                        {{round(sum.healing[2]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else :data-original-title="round(sum.healing[2]/phase.durationS) + ' hps'">
+                        {{sum.healing[2]}}
+                    </td>
+                    <td v-show="!targetless" v-if="!showDamage" :data-original-title="sum.healing[3] + ' healing'">
+                        {{round(sum.healing[3]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else :data-original-title="round(sum.healing[3]/phase.durationS) + ' hps'">
+                        {{sum.healing[3]}}
+                    </td>
+                    <td v-show="!targetless" v-if="!showDamage" :data-original-title="sum.healing[4] + ' healing'">
+                        {{round(sum.healing[4]/phase.durationS)}}
+                    </td>
+                    <td v-show="!targetless" v-else :data-original-title="round(sum.healing[4]/phase.durationS) + ' hps'">
+                        {{sum.healing[4]}}
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</template>
+
+<script>
+    Vue.component("healing-stats-component", {
+        props: ["activetargets", "playerindex", "phaseindex"],
+        template: `${template}`,
+        mixins: [numberComponent],
+        data: function () {
+            return {
+                targetless: logData.targetless,
+                showDamage: logData.wvw,
+                cacheTarget: new Map()
+            };
+        },
+        mounted() {
+            initTable("#heal-table", 4, "desc");
+        },
+        updated() {
+            updateTable("#heal-table");
+        },
+        methods: {
+            computeTotalContribution: function (index, row, sums) {
+                return this.round2(row[index] * 100 / sums[sums.length - 1].healing[index]) + '% of total';
+            },
+            computeGroupContribution: function (groupIndex, index, row, sums) {
+                var sumId = 0;
+                for (var sumId = 0; sumId < sums.length; sumId++) {
+                    if (sums[sumId].name.includes(groupIndex)) {
+                        break;
+                    }
+                }
+                return this.round2(row[index] * 100 / sums[sumId].healing[index]) + '% of group';
+            }
+        },
+        computed: {
+            phase: function () {
+                return logData.phases[this.phaseindex];
+            },
+            hasBreakbarDamage: function () {
+                return logData.hasBreakbarDamage;
+            },
+            tableData: function () {
+                var cacheID = this.phaseindex + '-';
+                cacheID += getTargetCacheID(this.activetargets);
+                if (this.cacheTarget.has(cacheID)) {
+                    return this.cacheTarget.get(cacheID);
+                }
+                var rows = [];
+                var sums = [];
+                var total = [0, 0, 0, 0, 0];
+                var groups = [];
+                var i, j;
+                for (i = 0; i < this.phase.healStats.length; i++) {
+                    var player = logData.players[i];
+                    if (!groups[player.group]) {
+                        groups[player.group] = [0, 0, 0, 0, 0];
+                    }
+                    var healing = this.phase.healStats[i];
+                    for (j = 0; j < healing.length; j++) {
+                        total[j] += healing[j];
+                        groups[player.group][j] += healing[j];
+                    }
+                    rows.push({
+                        player: player,
+                        healing: healing
+                    });
+                }
+                for (i = 0; i < groups.length; i++) {
+                    if (groups[i]) {
+                        sums.push({
+                            name: "Group " + i,
+                            healing: groups[i]
+                        });
+                    }
+                }
+                sums.push({
+                    name: "Total",
+                    healing: total
+                });
+                var res = {
+                    rows: rows,
+                    sums: sums
+                };
+                this.cacheTarget.set(cacheID, res);
+                return res;
+            }
+        }
+    });
+</script>

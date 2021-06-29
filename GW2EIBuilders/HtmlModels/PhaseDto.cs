@@ -23,6 +23,7 @@ namespace GW2EIBuilders.HtmlModels
         public List<List<object>> DmgStats { get; set; }
         public List<List<object>> DefStats { get; set; }
         public List<List<object>> SupportStats { get; set; }
+        public List<List<object>> HealStats { get; set; }
         // all
         public List<BuffData> BoonStats { get; set; }
         public List<BuffData> BoonGenSelfStats { get; set; }
@@ -242,6 +243,19 @@ namespace GW2EIBuilders.HtmlModels
             return data;
         }
 
+        private static List<object> GetHealStatData(FinalHealStats heal)
+        {
+            var data = new List<object>
+                {
+                    heal.SquadHealing,
+                    heal.GroupHealing,
+                    heal.SelfHealing,
+                    heal.AllHealingExclMinions,
+                    heal.AllHealingInclMinions,
+                };
+            return data;
+        }
+
         private static List<object> GetDefenseStatData(FinalDefensesAll defenses, PhaseData phase)
         {
             var data = new List<object>
@@ -358,6 +372,17 @@ namespace GW2EIBuilders.HtmlModels
             {
                 FinalToPlayersSupport support = actor.GetToPlayerSupportStats(log, phase.Start, phase.End);
                 list.Add(GetSupportStatData(support));
+            }
+            return list;
+        }
+
+        public static List<List<object>> BuildHealData(ParsedEvtcLog log, PhaseData phase)
+        {
+            var list = new List<List<object>>(log.Friendlies.Count);
+            foreach (AbstractSingleActor actor in log.Friendlies)
+            {
+                FinalHealStats heal = actor.GetHealStats(log, phase.Start, phase.End);
+                list.Add(GetHealStatData(heal));
             }
             return list;
         }

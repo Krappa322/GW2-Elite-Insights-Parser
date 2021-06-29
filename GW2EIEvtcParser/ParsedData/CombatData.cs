@@ -27,6 +27,9 @@ namespace GW2EIEvtcParser.ParsedData
         private readonly Dictionary<AgentItem, List<AbstractHealthDamageEvent>> _damageTakenData;
         private readonly Dictionary<AgentItem, List<AbstractBreakbarDamageEvent>> _breakbarDamageTakenData;
         private readonly List<RewardEvent> _rewardEvents = new List<RewardEvent>();
+        private readonly Dictionary<AgentItem, List<HealEvent>> _healData;
+        private readonly Dictionary<AgentItem, List<HealEvent>> _healReceivedData;
+        private readonly Dictionary<long, List<HealEvent>> _healDataById;
 
         internal bool HasStackIDs { get; } = false;
 
@@ -319,11 +322,16 @@ namespace GW2EIEvtcParser.ParsedData
             var wepSwaps = new List<WeaponSwapEvent>();
             var brkDamageData = new List<AbstractBreakbarDamageEvent>();
             var damageData = new List<AbstractHealthDamageEvent>();
+            var healData = new List<HealEvent>();
             operation.UpdateProgressWithCancellationCheck("Creating EI Combat Data");
             foreach (CombatItem combatItem in allCombatItems)
             {
                 _skillIds.Add(combatItem.SkillID);
-                if (combatItem.IsStateChange != ArcDPSEnums.StateChange.None)
+                if (combatItem.IsStateChange == ArcDPSEnums.StateChange.Extension && combatItem.Pad == (uint)ArcDPSEnums.AddonID.HealingStats)
+                {
+                    CombatEventFactory.AddHealingStatsEvent(combatItem, healData, agentData, skillData);
+                }
+                else if (combatItem.IsStateChange != ArcDPSEnums.StateChange.None)
                 {
                     CombatEventFactory.AddStateChangeEvent(combatItem, agentData, skillData, _metaDataEvents, _statusEvents, _rewardEvents, wepSwaps, buffEvents);
                 }
@@ -383,6 +391,10 @@ namespace GW2EIEvtcParser.ParsedData
             _breakbarDamageData = brkDamageData.GroupBy(x => x.From).ToDictionary(x => x.Key, x => x.ToList());
             _breakbarDamageTakenData = brkDamageData.GroupBy(x => x.To).ToDictionary(x => x.Key, x => x.ToList());
             _buffRemoveAllData = _buffData.ToDictionary(x => x.Key, x => x.Value.OfType<BuffRemoveAllEvent>().ToList());
+            _healData = healData.GroupBy(x => x.From).ToDictionary(x => x.Key, x => x.ToList());
+            _healReceivedData = healData.GroupBy(x => x.To).ToDictionary(x => x.Key, x => x.ToList());
+            _healDataById = healData.GroupBy(x => x.SkillId).ToDictionary(x => x.Key, x => x.ToList());
+            operation.UpdateProgressWithCancellationCheck("Got " + healData.Count + " heal events from " + _healData.Count + " sources");
             //
             /*healing_data = allCombatItems.Where(x => x.getDstInstid() != 0 && x.isStateChange() == ParseEnum.StateChange.Normal && x.getIFF() == ParseEnum.IFF.Friend && x.isBuffremove() == ParseEnum.BuffRemove.None &&
                                          ((x.isBuff() == 1 && x.getBuffDmg() > 0 && x.getValue() == 0) ||
@@ -806,5 +818,30 @@ namespace GW2EIEvtcParser.ParsedData
             return new List<AbstractMovementEvent>();
         }
 
+        public IReadOnlyList<HealEvent> GetHealData(AgentItem key)
+        {
+            if (_healData.TryGetValue(key, out List<HealEvent> res))
+            {
+                return res;
+            }
+            return new List<HealEvent>();
+        }
+        public IReadOnlyList<HealEvent> GetHealReceivedData(AgentItem key)
+        {
+            if (_healReceivedData.TryGetValue(key, out List<HealEvent> res))
+            {
+                return res;
+            }
+            return new List<HealEvent>();
+        }
+
+        public IReadOnlyList<HealEvent> GetHealData(long key)
+        {
+            if (_healDataById.TryGetValue(key, out List<HealEvent> res))
+            {
+                return res;
+            }
+            return new List<HealEvent>();
+        }
     }
 }

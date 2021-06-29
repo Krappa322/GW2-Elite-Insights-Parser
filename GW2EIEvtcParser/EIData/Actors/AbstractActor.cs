@@ -35,6 +35,9 @@ namespace GW2EIEvtcParser.EIData
         protected Dictionary<AgentItem, List<AbstractBreakbarDamageEvent>> BreakbarDamageTakenEventsBySrc { get; set; }
         // Cast
         protected List<AbstractCastEvent> CastEvents { get; set; }
+        protected List<HealEvent> HealEvents { get; set; }
+        protected Dictionary<AgentItem, List<HealEvent>> HealEventsByDst { get; set; }
+        protected List<HealEvent> HealReceivedEvents { get; set; }
 
         protected AbstractActor(AgentItem agent)
         {
@@ -92,8 +95,10 @@ namespace GW2EIEvtcParser.EIData
         // Cast logs
         public abstract IReadOnlyList<AbstractCastEvent> GetCastEvents(ParsedEvtcLog log, long start, long end);
         public abstract IReadOnlyList<AbstractCastEvent> GetIntersectingCastEvents(ParsedEvtcLog log, long start, long end);
-        // privates
 
+        public abstract IReadOnlyList<HealEvent> GetHealEvents(AbstractSingleActor target, ParsedEvtcLog log, long start, long end);
+
+        // privates
         protected static bool KeepIntersectingCastLog(AbstractCastEvent evt, long start, long end)
         {
             return (evt.Time >= start && evt.Time <= end) || // start inside

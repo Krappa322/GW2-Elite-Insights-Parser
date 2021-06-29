@@ -574,7 +574,13 @@ namespace GW2EIEvtcParser
             {
                 return false;
             }
-            return combatItem.IsStateChange != ArcDPSEnums.StateChange.Unknown && combatItem.IsStateChange != ArcDPSEnums.StateChange.StatReset && combatItem.IsStateChange != ArcDPSEnums.StateChange.APIDelayed && combatItem.IsStateChange != ArcDPSEnums.StateChange.Extension;
+
+            if (combatItem.IsStateChange == ArcDPSEnums.StateChange.Extension && combatItem.Pad != (uint)ArcDPSEnums.AddonID.HealingStats)
+            {
+                return false;
+            }
+
+            return combatItem.IsStateChange != ArcDPSEnums.StateChange.Unknown && combatItem.IsStateChange != ArcDPSEnums.StateChange.StatReset && combatItem.IsStateChange != ArcDPSEnums.StateChange.APIDelayed;
         }
         private static bool UpdateAgentData(AgentItem ag, long logTime, ushort instid, bool checkInstid)
         {       

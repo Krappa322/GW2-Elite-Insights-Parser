@@ -3,6 +3,9 @@
 ###############################################################################
 * text=auto
 
+# Treat auto generated file as binary so git doesn't mess with the line endings
+GW2EIBuilders/Properties/Resources.Designer.cs binary
+
 ###############################################################################
 # Set default behavior for command prompt diff.
 #

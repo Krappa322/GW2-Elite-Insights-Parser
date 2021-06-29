@@ -642,6 +642,10 @@ namespace GW2EIEvtcParser
             return Enum.IsDefined(typeof(TargetID), id) ? (TargetID)id : TargetID.Unknown;
         }
 
+        public enum AddonID : uint
+        {
+            HealingStats = 0x9c9b3c99,
+        }
     }
 
     public static class PhysicalResultExtensions
@@ -714,6 +718,8 @@ namespace GW2EIEvtcParser
             return state.SrcIsAgent() 
                 || state.DstIsAgent() 
                 || state == ArcDPSEnums.StateChange.Reward
+                // TODO: Filter what addon the event came from, although addons cannot send statechange events so this is mostly safe
+                || state == ArcDPSEnums.StateChange.Extension
                 ;
         }
     }

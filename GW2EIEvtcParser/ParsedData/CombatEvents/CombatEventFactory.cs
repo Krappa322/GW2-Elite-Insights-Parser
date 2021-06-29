@@ -308,5 +308,32 @@ namespace GW2EIEvtcParser.ParsedData
             }
         }
 
+        public static void AddHealingStatsEvent(CombatItem evtcItem, List<HealEvent> healData, AgentData agentData, SkillData skillData)
+        {
+            if (evtcItem.IsBuff != 0 && evtcItem.BuffDmg == 0 && evtcItem.Value > 0)
+            {
+                // Buff apply, not sent
+            }
+            else if (evtcItem.IsBuff != 0 || evtcItem.Value != 0)
+            {
+                bool conditionBased;
+                int healthModification;
+                if (evtcItem.BuffDmg != 0)
+                {
+                    conditionBased = true;
+                    healthModification = evtcItem.BuffDmg;
+                }
+                else
+                {
+                    conditionBased = false;
+                    healthModification = evtcItem.Value;
+                }
+
+                if (healthModification < 0) // healing 
+                {
+                    healData.Add(new HealEvent(conditionBased, -healthModification, evtcItem, agentData, skillData));
+                }
+            }
+        }
     }
 }

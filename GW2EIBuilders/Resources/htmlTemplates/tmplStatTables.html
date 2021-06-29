@@ -13,6 +13,9 @@
             <li>
                 <a class="nav-link" :class="{active: tab === 3}" @click="tab = 3">Support Stats</a>
             </li>
+            <li>
+                <a class="nav-link" :class="{active: tab === 4}" @click="tab = 4">Healing Stats</a>
+            </li>
         </ul>
         <keep-alive>
             <damage-stats-component v-if="tab === 0" :key="'damage'" :phaseindex="phaseindex"
@@ -24,6 +27,8 @@
                 :playerindex="playerindex"></defense-stats-component>
             <support-stats-component v-if="tab === 3" :key="'support'" :phaseindex="phaseindex"
                 :playerindex="playerindex"></support-stats-component>
+            <healing-stats-component v-if="tab === 4" :key="'healing'" :phaseindex="phaseindex"
+                :playerindex="playerindex" :activetargets="activetargets"></healing-stats-component>
         </keep-alive>
     </div>
 

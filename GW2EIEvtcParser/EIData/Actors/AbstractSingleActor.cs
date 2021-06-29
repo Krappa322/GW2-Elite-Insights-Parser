@@ -31,6 +31,7 @@ namespace GW2EIEvtcParser.EIData
         private CachingCollectionWithTarget<FinalGameplayStats> _gameplayStats;
         private CachingCollectionWithTarget<FinalSupport> _supportStats;
         private CachingCollection<FinalToPlayersSupport> _toPlayerSupportStats;
+        private CachingCollectionWithTarget<FinalHealStats> _healStats;
 
         protected AbstractSingleActor(AgentItem agent) : base(agent)
         {
@@ -478,6 +479,25 @@ namespace GW2EIEvtcParser.EIData
             return value;
         }
 
+        // Heal Stats
+        public FinalHealStats GetHealStats(AbstractSingleActor target, ParsedEvtcLog log, long start, long end)
+        {
+            if (_healStats == null)
+            {
+                _healStats = new CachingCollectionWithTarget<FinalHealStats>(log);
+            }
+            if (!_healStats.TryGetValue(start, end, target, out FinalHealStats value))
+            {
+                value = new FinalHealStats(log, start, end, this, target);
+                _healStats.Set(start, end, target, value);
+            }
+            return value;
+        }
+
+        public FinalHealStats GetHealStats(ParsedEvtcLog log, long start, long end)
+        {
+            return GetHealStats(null, log, start, end);
+        }
 
         // Damage logs
         public override IReadOnlyList<AbstractHealthDamageEvent> GetDamageEvents(AbstractSingleActor target, ParsedEvtcLog log, long start, long end)
@@ -622,5 +642,34 @@ namespace GW2EIEvtcParser.EIData
             return positions.FirstOrDefault(x => x.Time >= time);
         }
 
+        public override IReadOnlyList<HealEvent> GetHealEvents(AbstractSingleActor target, ParsedEvtcLog log, long start, long end)
+        {
+            if (HealEvents == null)
+            {
+                HealEvents = new List<HealEvent>();
+                HealEvents.AddRange(log.CombatData.GetHealData(AgentItem).Where(x => x.ToFriendly));
+                IReadOnlyDictionary<long, Minions> minionsList = GetMinions(log);
+                foreach (Minions mins in minionsList.Values)
+                {
+                    HealEvents.AddRange(mins.GetHealEvents(null, log, 0, log.FightData.FightEnd));
+                }
+                HealEvents = HealEvents.OrderBy(x => x.Time).ToList();
+                HealEventsByDst = HealEvents.GroupBy(x => x.To).ToDictionary(x => x.Key, x => x.ToList());
+            }
+            /*if (target != null)
+            {
+                if (HealEventsByDst.TryGetValue(target.AgentItem, out List<HealEvent> list))
+                {
+                    return list.Where(x => x.Time >= start && x.Time <= end).ToList();
+                }
+                else
+                {
+                    return new List<HealEvent>();
+                }
+            }*/
+            IReadOnlyList<HealEvent> y = HealEvents.Where(x => x.Time >= start && x.Time <= end).ToList();
+            log.UpdateProgressWithCancellationCheck("2) Got " + y.Count + " events for " + UniqueID + " (based on " + HealEvents.Count + " events)");
+            return y;
+        }
     }
 }

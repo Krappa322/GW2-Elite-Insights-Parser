@@ -162,6 +162,33 @@ namespace GW2EIEvtcParser.EIData
             return CastEvents.Where(x => KeepIntersectingCastLog(x, start, end)).ToList();
         }
 
+        public override IReadOnlyList<HealEvent> GetHealEvents(AbstractSingleActor target, ParsedEvtcLog log, long start, long end)
+        {
+            if (HealEvents == null)
+            {
+                HealEvents = new List<HealEvent>();
+                foreach (NPC minion in _minionList)
+                {
+                    HealEvents.AddRange(minion.GetHealEvents(null, log, 0, log.FightData.FightEnd));
+                }
+                HealEventsByDst = HealEvents.GroupBy(x => x.To).ToDictionary(x => x.Key, x => x.ToList());
+            }
+            /*if (target != null)
+            {
+                if (HealEventsByDst.TryGetValue(target.AgentItem, out List<HealEvent> list))
+                {
+                    return list.Where(x => x.Time >= start && x.Time <= end).ToList();
+                }
+                else
+                {
+                    return new List<HealEvent>();
+                }
+            }*/
+            IReadOnlyList<HealEvent> y = HealEvents.Where(x => x.Time >= start && x.Time <= end).ToList();
+            log.UpdateProgressWithCancellationCheck("Got " + y.Count + " events for " + UniqueID + " (based on " + HealEvents.Count + " events)");
+            return y;
+        }
+
         internal List<List<Segment>> GetLifeSpanSegments(ParsedEvtcLog log)
         {
             var minionsSegments = new List<List<Segment>>();

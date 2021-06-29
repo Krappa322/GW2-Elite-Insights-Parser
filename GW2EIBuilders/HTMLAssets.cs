@@ -69,6 +69,7 @@ namespace GW2EIBuilders
                 Properties.Resources.tmplDamageModifierStats,
                 Properties.Resources.tmplDamageModifierPersStats,
                 Properties.Resources.tmplDamageTable,
+                Properties.Resources.tmplHealingTable,
                 Properties.Resources.tmplDamageTaken,
                 Properties.Resources.tmplDeathRecap,
                 Properties.Resources.tmplDefenseTable,

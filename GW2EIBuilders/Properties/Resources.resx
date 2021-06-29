@@ -322,4 +322,7 @@
   <data name="tmplTargetTabGraph" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\htmlTemplates\tmplTargetTabGraph.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;Windows-1252</value>
   </data>
+  <data name="tmplHealingTable" type="System.Resources.ResXFileRef, System.Windows.Forms">
+    <value>..\Resources\htmlTemplates\tmplHealingTable.html;System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089;utf-8</value>
+  </data>
 </root>
